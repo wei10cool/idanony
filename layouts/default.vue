@@ -6,8 +6,8 @@
       </v-container>
     </v-main>
 
-    <v-footer :absolute="!fixed" app>
-      <span>&copy; 2022-{{ new Date().getFullYear() }}</span>
+    <v-footer :absolute="!fixed" app class="justify-center">
+      <span>&copy; 2022-{{ new Date().getFullYear() }} ID WATER Co., Ltd.</span>
     </v-footer>
   </v-app>
 </template>

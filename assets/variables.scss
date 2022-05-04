@@ -2,3 +2,32 @@
 //
 // The variables you want to modify
 // $font-size-root: 20px;
+//參考https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/styles/settings/_dark.scss
+$material-dark: (
+  'background': #5CBDBB,
+//   'text-color':#000,
+  'text': (
+      'primary':#000000,
+      'secondary':#555,
+    ),
+    'text-fields': (
+        'outlined':#00897B
+    ),
+    'icons': (
+      'active': #00897B,
+    //   'inactive': rgba(map-get($shades, 'white'), 0.5)
+    ),
+);
+
+$material-dark-elevation-colors:(
+    '0': #d76969,
+    '1': #B2E0DF,//card B2E0DF
+    '2': #222222,
+    '3': #252525,
+    '4': #B2E0DF,//toolbar 5CBDBB
+    '6': #2C2C2C,
+    '8': #2E2E2E,
+    '12': #333333,
+    '16': #363636,
+    '24': #373737
+);
