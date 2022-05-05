@@ -1,9 +1,9 @@
 <template>
   <v-row justify="center" align="center">
     <v-col cols="12" sm="10">
-      <v-card class="logo py-4 justify-center rounded-xl">
-        <v-card-title class="justify-center display-1"><span class="text--center">艾滴科技</span></v-card-title>
-        <v-card-title class="justify-center display-2"><span class="text--center">員工意見信箱</span></v-card-title>
+      <v-card class="logo py-4 justify-center rounded-xl" light>
+        <v-card-title class="justify-center display-1 pb-0"><span class="text--center">艾滴科技</span></v-card-title>
+        <v-card-title class="justify-center display-2"><span class="text--center">執行長信箱</span></v-card-title>
 
         <v-form ref="mainform">
           <v-card-text>
@@ -20,10 +20,10 @@
               <v-icon slot="append" color="success">mdi-reload</v-icon>
             </v-text-field>
           </v-card-text>
-          <v-card-text
+          <v-card-text class="pt-0"
             ><v-btn
               @click="exclusiveContentshow = !exclusiveContentshow"
-              class="error" style="color:white;"
+              class="info" style="color:white;"
               >顯示問題反應區</v-btn
             >
             <v-btn
@@ -60,7 +60,7 @@
         :items="
           switchreply ? desserts.filter((x) => x.reply == true) : desserts
         "
-        :footer-props="{ 'items-per-page-options': [-1, 25, 50, 100] }"
+        :footer-props="{ 'items-per-page-options': [-1, 25, 50, 100] }" light
       >
         <template v-slot:top>
           <v-toolbar flat class="rounded-xl">
