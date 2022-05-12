@@ -7,7 +7,7 @@ const routerBase = process.env.DEPLOY_ENV === 'GH_PAGES' ? {
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    titleTemplate: '%s - 員工意見信箱',
+    titleTemplate: '%s - 執行長信箱',
     title: '艾滴科技',
     htmlAttrs: {
       lang: 'tw',
@@ -26,7 +26,8 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
-    {src: '~plugins/lodash.js', ssr: false}
+    {src: '~plugins/lodash.js', ssr: false},
+    {src: '~plugins/vuecryptojs.js', ssr: false},
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
