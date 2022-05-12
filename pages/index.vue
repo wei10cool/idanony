@@ -83,6 +83,15 @@
                 <v-btn
                   rounded
                   :disabled="!newMan"
+                  @click="maneditsubmit"
+                  color="primary mb-1"
+                  style="color: white"
+                  slot="append" class="mr-1"
+                  >修改</v-btn
+                >
+                <v-btn
+                  rounded
+                  :disabled="!newMan"
                   @click="mansubmit"
                   color="primary mb-1"
                   style="color: white"
@@ -92,9 +101,9 @@
               </v-text-field>
               <v-chip
                 class="mx-1"
-                close
+                :close="exclusiveCode!=decrypto(item.encrypted_code)"
                 outlined
-                color="orange"
+                :color="`${exclusiveCode==decrypto(item.encrypted_code)?'purple':'purple'}`"
                 label
                 v-for="item in masterDataOra"
                 :key="item.id"
@@ -175,7 +184,12 @@
                 </v-col>
                 <!-- 修改 -->
                 <v-col cols="12" sm="2">
-                  <v-btn class="primary" style="color:white;" @click="datesubmit">修改</v-btn>
+                  <v-btn
+                    class="primary"
+                    style="color: white"
+                    @click="datesubmit"
+                    >確認</v-btn
+                  >
                 </v-col>
               </v-row>
             </v-card-text>
@@ -188,7 +202,7 @@
         class="rounded-xl"
         :headers="headers"
         :items="
-          switchreply ? desserts.filter((x) => x.reply == true) : desserts
+          switchreply ? desserts.filter((x) => x.reply == false) : desserts
         "
         :footer-props="{ 'items-per-page-options': [-1, 25, 50, 100] }"
         light
@@ -199,7 +213,7 @@
             <v-switch
               v-model="switchreply"
               inset
-              :label="`只顯示已回覆`"
+              :label="`只顯示未回覆`"
             ></v-switch>
           </v-toolbar>
         </template>
@@ -217,7 +231,7 @@
           <v-card-title>提問內容</v-card-title>
           <v-card-text>{{ replyItem.content }}</v-card-text>
           <v-divider></v-divider>
-          <v-card-title>回覆內容{{ masterData }} }}</v-card-title>
+          <v-card-title>回覆內容</v-card-title>
 
           <v-card-text v-if="master">
             <v-form ref="replyform">
@@ -226,10 +240,11 @@
                 v-model="replyItem.replycontent"
                 clearable
               ></v-textarea>
-              <v-btn class="error" tile>刪除??(應該是不需要這功能)</v-btn>
-              <v-btn
+              <!-- <v-btn class="error" tile>刪除??(應該是不需要這功能)</v-btn> -->
+              <v-btn block
                 class="primary"
                 tile
+                style="color:white;"
                 :disabled="String(replyItem.replycontent).trim().length == 0"
                 @click="replysubmit"
                 >確定送出</v-btn
@@ -366,12 +381,21 @@ export default {
 
       this.$toast.success(`取得成功`, { duration: 2000 })
     },
+    //取得開放時段
+    getsedate:async function(){
+      this.sdate = '2022-01-01'
+      this.edate = '2022-12-31'
+    },
+    //取得管理碼清單
     getmasterdata: async function () {
       let url = `https://anonymous-api-site.herokuapp.com/api/qa/administrator/`
       await this.$axios
         .get(url)
         .then((res) => {
           this.masterDataOra = res.data
+          this.masterDataOra.map(
+            (x) => (x.decrypted_code = this.decrypto(x.encrypted_code))
+          )
           this.masterData = res.data.map((x) => x.encrypted_code)
         })
         .catch((error) => {
@@ -383,14 +407,74 @@ export default {
           //this.getdata();
         })
     },
-    //管理
+    //管理顯示
     showmanagedig: function () {
+      this.newMan = '';
       this.managedig = true
+    },
+    //修改管理
+    maneditsubmit: async function () {
+      //密碼是否符合規則
+      if (this.$refs.manform.validate() == false) {
+        return
+      }
+      //密碼是否與原本相同
+      if (this.exclusiveCode == this.newMan) {
+        this.$toast.error(`新密碼與舊密碼相同`, {
+          duration: 2000,
+        })
+        return
+      }
+      //確認是否要修改
+      if (
+        confirm(
+          `您要修改管理專屬碼：「${this.exclusiveCode}」為「${this.newMan}」？`
+        ) == false
+      ) {
+        this.$toast.info(`取消修改：「${this.exclusiveCode}」`, {
+          duration: 2000,
+        })
+        return
+      }
+      var parm = {
+        encrypted_code: this.crypto(this.newMan),
+      }
+
+      let id = this.masterDataOra.filter(
+        (x) => x.decrypted_code == this.exclusiveCode
+      )[0].id
+      let url = `https://anonymous-api-site.herokuapp.com/api/qa/administrator/${id}/`
+      await this.$axios
+        .patch(url)
+        .then((res) => {
+          if (res.status == 200) {
+            this.getmasterdata() //re get master list
+            debugger
+            this.exclusiveCode = this.newMan;
+            this.newMan = '';
+            
+            this.$toast.success(`修改成功`, { duration: 2000 })
+          } else {
+            this.$toast.error(`修改失敗：${res.data}`, { duration: 2000 })
+          }
+
+          console.log('修改API:' + res.request.responseURL)
+        })
+        .catch((error) => {
+          this.$toast.error(`取得失敗:${error}`, {
+            duration: 2000,
+          })
+        })
+        .finally(() => {})
     },
     //新增管理
     mansubmit: async function () {
       if (this.$refs.manform.validate() == false) {
         return
+      }
+      if(this.newMan==this.exclusiveCode){
+        this.$toast.error(`新增失敗：與自己的管理專屬碼相同`, { duration: 2000 })
+        return;
       }
       let url = `https://anonymous-api-site.herokuapp.com/api/qa/administrator/`
       var parm = {
@@ -420,6 +504,9 @@ export default {
     },
     //刪除管理
     mandel: async function (data) {
+      if(confirm(`是否刪除${this.decrypto(data.encrypted_code)}?`)==false){
+        return
+      }
       var checkmaster = this.decrypto(data.encrypted_code) == this.exclusiveCode
       if (checkmaster == true) {
         this.$toast.error(`刪除失敗：無法刪除自己管理碼`, { duration: 2000 })
@@ -446,12 +533,12 @@ export default {
         })
         .finally(() => {})
     },
-    datesubmit:async function(){
+    datesubmit: async function () {
       var parm = {
-        sdate :this.sdate,
-        edate:this.edate
+        sdate: this.sdate,
+        edate: this.edate,
       }
-      console.log(parm);
+      console.log(parm)
     },
     // isMaster: function(){
     //   var data = this.masterData.map(x=>this.decrypto(x));
@@ -472,6 +559,7 @@ export default {
   },
   async mounted() {
     await this.getmasterdata()
+    await this.getsedate()
   },
 }
 </script>
