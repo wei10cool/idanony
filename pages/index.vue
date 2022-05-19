@@ -15,7 +15,7 @@
               outlined
               class="mx-2"
               v-model="exclusiveCode"
-              placeholder="請輸入專屬碼"
+              placeholder="請輸入提問隱私碼"
               clearable
               counter="12"
               maxlength="12"
@@ -23,15 +23,16 @@
               @keydown.enter.prevent="enterControl"
               @keydown="exclusiveContentshow=false"
               :rules="[rules.pwdcheck]"
-              ><span style="width: 80px; font-size: 1.3em" slot="prepend"
-                >專屬碼</span
+              ><span style="width: 120px; font-size: 1.3em" slot="prepend"
+                >提問隱私碼</span
               >
               <v-icon @click="getquestionData" slot="append" color="success"
                 >mdi-reload</v-icon
               >
             </v-text-field>
+            <span>請記好您現在使用的隱私碼，日後查詢需要使用到相同隱私碼才可查看回覆</span>
             <div class="text-center headline" style="color: red" v-if="master">
-              注意：您正在使用管理專屬碼
+              注意：您正在使用管理隱私碼
             </div>
           </v-card-text>
           <v-card-text class="pt-0"
@@ -39,7 +40,7 @@
               @click="
                 () => {
                   if (this.$refs.mainform.validate() == false) {
-                    this.$toast.error(`您輸入的專屬碼不符合規定`, {
+                    this.$toast.error(`您輸入的隱私碼不符合規定`, {
                       duration: 2000,
                     })
                     return
@@ -79,7 +80,7 @@
             <v-btn
               color="primary"
               style="color: white"
-              :disabled="!exclusiveCode || exclusiveCode.length <= 0"
+              :disabled="(!exclusiveCode || exclusiveCode.length <= 0) || (exclusiveContent.length<=0)"
               @click="questionsubmit"
               ><v-icon>mdi-incognito</v-icon>送出</v-btn
             >
@@ -90,9 +91,9 @@
         <v-card light>
           <v-card-title class="headline">管理設定</v-card-title>
           <v-form ref="manform">
-            <!-- 管理專屬碼 -->
+            <!-- 管理隱私碼 -->
             <v-card-text>
-              <span class="text-h6" style="color: purple">管理專屬碼</span>
+              <span class="text-h6" style="color: purple">管理隱私碼</span>
               <v-text-field
                 filled
                 dense
@@ -100,7 +101,7 @@
                 :rules="[rules.pwdcheck]"
                 counter="12"
                 maxlength="12"
-                placeholder="新增管理專屬碼"
+                placeholder="新增管理隱私碼"
               >
                 <v-btn
                   rounded
@@ -231,6 +232,7 @@
     </v-col>
     <v-col cols="12" sm="10">
       <v-data-table
+        no-data-text="查無資料"
         class="rounded-xl"
         :headers="headers"
         :items="
@@ -250,11 +252,11 @@
           </v-toolbar>
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn
+          <v-btn block
             style="color: white"
             :color="item.is_reply ? 'primary' : 'warning'"
             @click="showreplydig(item)"
-            >{{ `${item.is_reply ? '查看' : '開始'}回覆` }}</v-btn
+            >{{ `${item.is_reply ? '查看' : (master)?'開始':'未'}回覆` }}</v-btn
           >
         </template>
       </v-data-table>
@@ -325,7 +327,7 @@ export default {
       masterDataOra: [], //管理碼原始資料
       masterData: [], //管理碼
       // master: false,
-      exclusiveCode: '', //正在輸入的專屬碼IDWater12345
+      exclusiveCode: '', //正在輸入的隱私碼IDWater12345
       exclusiveContent: '',
       exclusiveContentshow: false,
       headers: [
@@ -337,7 +339,7 @@ export default {
           width:200,
         },
         { text: '提問內容', align: 'start', sortable: false, value: 'content' },
-        { text: '回覆狀態', align: 'start', sortable: false, value: 'action',width:100, },
+        { text: '回覆狀態', align: 'center', sortable: false, value: 'action',width:100, },
       ],
       desserts: [
         // {
@@ -367,7 +369,7 @@ export default {
         pwdcheck: (value) =>
           (value &&
             /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(value)) ||
-          '6位數，(僅包含大寫字母、小寫字母、數字，禁止使用符號)',
+          '至少輸入6位文數字，且需包含大寫字母、小寫字母、數字，並禁止使用符號',
       },
       //--管理區域
       managedig: false,
@@ -392,7 +394,7 @@ export default {
     //取得問題清單
     getquestionData: async function () {
       if (this.$refs.mainform.validate() == false) {
-        this.$toast.error(`您輸入的專屬碼不符合規定`, {
+        this.$toast.error(`您輸入的隱私碼不符合規定`, {
           duration: 2000,
         })
         return
@@ -427,7 +429,7 @@ export default {
     //提問送出
     questionsubmit: async function () {
       var parm = {
-        encrypted_code: this.exclusiveCode, //專屬碼
+        encrypted_code: this.exclusiveCode, //隱私碼
         content: this.exclusiveContent, //內容
       }
       let url = `https://anonymous-api-site.herokuapp.com/api/qa/question/`
@@ -648,7 +650,7 @@ export default {
       //確認是否要修改
       if (
         confirm(
-          `您要修改管理專屬碼：「${this.exclusiveCode}」為「${this.newMan}」？`
+          `您要修改管理隱私碼：「${this.exclusiveCode}」為「${this.newMan}」？`
         ) == false
       ) {
         this.$toast.info(`取消修改：「${this.exclusiveCode}」`, {
@@ -693,7 +695,7 @@ export default {
         return
       }
       if (this.newMan == this.exclusiveCode) {
-        this.$toast.error(`新增失敗：與自己的管理專屬碼相同`, {
+        this.$toast.error(`新增失敗：與自己的管理隱私碼相同`, {
           duration: 2000,
         })
         return
